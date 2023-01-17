@@ -13,6 +13,8 @@ AMZN.dropna(inplace=True)
 print(AMZN.head())
 
 # Calculating Daily Returns, Log Returns, Cumulative Return  and Annualized Volatility
+# Calculate Returns in Percentages - but when calculating Cumulative Returns make sure to convert it back to
+# absolute values and not use percentage value in calculation
 AMZN['Daily Returns'] = AMZN['Adj Close'].pct_change() * 100
 AMZN['Daily Log Returns'] = np.log(AMZN['Adj Close'] / AMZN['Adj Close'].shift(1)) * 100
 AMZN['Cumulative Returns'] = ((AMZN['Daily Returns'] / 100) + 1).cumprod()
@@ -25,14 +27,35 @@ SP500 = yf.download('^GSPC', start=start_date)
 SP500.dropna(inplace=True)
 
 # Calculating Daily Returns, Log Returns, Annualized Volatility and Cumulative Return for the Benchmark
+# Calculate Returns in Percentages - but when calculating Cumulative Returns make sure to convert it back to
+# absolute values and not use percentage value in calculation
 SP500["Daily Returns"] = SP500["Adj Close"].pct_change() * 100
-SP500["Daily Log Returns"] = np.log(SP500["Adj Close"]/SP500["Adj Close"].shift(1)) * 100
+SP500["Daily Log Returns"] = np.log(SP500["Adj Close"] / SP500["Adj Close"].shift(1)) * 100
 SP500["Cumulative Returns"] = ((SP500["Daily Returns"] / 100) + 1).cumprod()
 SP500["Annualized Volatility"] = SP500["Daily Log Returns"].rolling(252).std() * np.sqrt(252)
 print(SP500.tail())
 
 
 # Plot Daily Log Returns, Annualized Volatility and Cumulative Returns
-AMZN[['Daily Log Returns', 'Annualized Volatility']].plot(subplots=True, figsize=(20, 10))
-AMZN[['Cumulative Returns']].plot(subplots=True, figsize=(20, 6))
+# AMZN[['Daily Log Returns', 'Annualized Volatility']].plot(subplots=True, figsize=(20, 10))
+# AMZN[['Cumulative Returns']].plot(subplots=True, figsize=(20, 6))
+
+# Plot Daily Log Returns, Annualized Volatility and Cumulative Returns for Benchmark
+# SP500[['Daily Log Returns', 'Annualized Volatility']].plot(subplots=True, figsize=(20, 10))
+# SP500[['Cumulative Returns']].plot(subplots=True, figsize=(20, 6))
+
+# Calculating Moving Averages for AMZN
+AMZN["21D Moving Average"] = AMZN["Adj Close"].rolling(21).mean()
+AMZN["200D Moving Average"] = AMZN["Adj Close"].rolling(200).mean()
+
+# Plot Stock Price and Moving Averages to observe pattern
+AMZN[["Adj Close", "21D Moving Average", "200D Moving Average"]].plot(figsize=(20, 6))
+
+# Calculating Moving Averages for the SP500
+SP500["21D Moving Average"] = SP500["Adj Close"].rolling(21).mean()
+SP500["200D Moving Average"] = SP500["Adj Close"].rolling(200).mean()
+
+# Plot SP500 Daily Price and Moving Averages to observe pattern
+SP500[["Adj Close", "21D Moving Average", "200D Moving Average"]].plot(figsize=(20, 10))
+
 
