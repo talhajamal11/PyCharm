@@ -44,18 +44,16 @@ print(SP500.tail())
 # SP500[['Daily Log Returns', 'Annualized Volatility']].plot(subplots=True, figsize=(20, 10))
 # SP500[['Cumulative Returns']].plot(subplots=True, figsize=(20, 6))
 
-# Calculating Moving Averages for AMZN
-AMZN["21D Moving Average"] = AMZN["Adj Close"].rolling(21).mean()
-AMZN["200D Moving Average"] = AMZN["Adj Close"].rolling(200).mean()
+# Calculating SMA for AMZN
+AMZN["21D SMA"] = AMZN["Adj Close"].rolling(21).mean()
+AMZN["200D SMA"] = AMZN["Adj Close"].rolling(200).mean()
 
-# Plot Stock Price and Moving Averages to observe pattern
-AMZN[["Adj Close", "21D Moving Average", "200D Moving Average"]].plot(figsize=(20, 6))
+# Plot Stock Price and SMA to observe pattern
+AMZN[["Adj Close", "21D SMA", "200D SMA"]].plot(figsize=(20, 6))
 
-# Calculating Moving Averages for the SP500
-SP500["21D Moving Average"] = SP500["Adj Close"].rolling(21).mean()
-SP500["200D Moving Average"] = SP500["Adj Close"].rolling(200).mean()
+# Calculating SMA for the SP500
+SP500["21D SMA"] = SP500["Adj Close"].rolling(21).mean()
+SP500["200D SMA"] = SP500["Adj Close"].rolling(200).mean()
 
-# Plot SP500 Daily Price and Moving Averages to observe pattern
-SP500[["Adj Close", "21D Moving Average", "200D Moving Average"]].plot(figsize=(20, 10))
-
-
+# Plot SP500 Daily Price and SMA to observe pattern
+SP500[["Adj Close", "21D SMA", "200D SMA"]].plot(figsize=(20, 10))
