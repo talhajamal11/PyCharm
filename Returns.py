@@ -4,13 +4,14 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
-import plotly.offline as plo
-from pylab import plt
+import plotly.offline
+import pylab
+from scipy import stats
 
 # Configurations of Libraries
 pd.set_option('display.max_columns', 500)
 mpl.rcParams['font.family'] = 'serif'
-plt.style.use('seaborn')
+mpl.style.use('seaborn')
 
 start = dt.date(2012, 1, 1)
 end = dt.datetime.now().date()
@@ -26,7 +27,7 @@ Calculating Daily Returns, Log Returns, Cumulative Return  and Annualized Volati
 '''
 AMZN['Daily Returns'] = AMZN['Adj Close'].pct_change()
 AMZN['Daily Log Returns'] = np.log(AMZN['Adj Close'] / AMZN['Adj Close'].shift(1))
-AMZN['Cumulative Returns'] = ((AMZN['Daily Returns'] ) + 1).cumprod()
+AMZN['Cumulative Returns'] = ((AMZN['Daily Returns']) + 1).cumprod()
 AMZN['Annualized Volatility'] = AMZN['Daily Log Returns'].rolling(252).std() * np.sqrt(252)
 print(AMZN.tail())
 
@@ -84,9 +85,69 @@ print('First Price', AMZN_first, 'Last Price', AMZN_last)
 
 # Using Mean of Simple Returns to calculate latest price
 AMZN_simple_returns = AMZN["Daily Returns"].dropna()
-srmp = AMZN_first * (1 + AMZN_simple_returns.mean())**len(AMZN_simple_returns)
+srmp = AMZN_first * (1 + AMZN_simple_returns.mean()) ** len(AMZN_simple_returns)
 print('Prediction of Last Price using Mean of Simple Returns: ', srmp)
 
 # Using Product of Simple Returns to calculate latest price
-srpp = AMZN_first * np.prod([(1+R) for R in AMZN_simple_returns])
+srpp = AMZN_first * np.prod([(1 + R) for R in AMZN_simple_returns])
 print('Prediction of Last Price using Product of Simple Returns: ', srpp)
+
+# Log Returns have an additive property which is more useful since the sum is normally distributed
+AMZN_log_returns = AMZN["Daily Log Returns"].dropna()
+lrmp = AMZN_first * np.exp(AMZN_log_returns.mean() * len(AMZN_log_returns))
+print("Prediction using Mean of Log Returns: ", lrmp)
+print("Actual Price", AMZN_last)
+
+# Plotting Histogram of Log Returns and Simple Returns
+AMZN_log_returns.plot(kind='hist')
+AMZN_simple_returns.plot(kind='hist')
+
+# Normality
+sorted_log_returns = AMZN_log_returns.tolist()
+sorted_log_returns.sort()
+print(sorted_log_returns)
+
+worst = sorted_log_returns[0]
+best = sorted_log_returns[1]
+
+# Standardize
+std_worst = (worst - AMZN_log_returns.mean()) / AMZN_log_returns.std()
+std_best = (best - AMZN_log_returns.mean()) / AMZN_log_returns.std()
+std = AMZN_log_returns.std()
+print('Std : %.2f, Worst : %.2f, Best : %.2f' % (std, worst, best))
+
+# Probability of Worst and Best Performance
+prob_worst = stats.norm(0, 1).pdf(std_worst)
+prob_best = stats.norm(0, 1).pdf(std_best)
+print("The Probability of the worst return: %.15f" % prob_worst)
+print("The Probability of the best return: %.10f" % prob_best)
+
+# We can visually check whether the returns are normally distributed
+# Q-Q Plot
+stats.probplot(AMZN_log_returns, dist='norm', plot=pylab)
+
+# Box Plot
+AMZN_log_returns.plot(kind='box')
+
+# statistical test and null hypthesis
+# Ks Test
+ks_stat, p_value = stats.kstest(AMZN_log_returns, 'norm')
+print(ks_stat, p_value)
+
+if p_value > 0.05:
+    print("Gaussian")
+else:
+    print("NOT Gaussian")
+
+# Shapiro Wills Test
+sw_stat, p_value = stats.shapiro(AMZN_log_returns)
+print(sw_stat, p_value)
+
+if p_value > 0.05:
+    print("Gaussian")
+else:
+    print("NOT Gaussian")
+
+
+#function to calculate n period return
+def n_period_price_return(price, n):
